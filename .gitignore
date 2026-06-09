@@ -18,7 +18,7 @@
 *.tlog
 *.recipe
 *.log
+*.spv
 
 # Local tooling
 .vscode/
-

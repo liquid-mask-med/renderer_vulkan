@@ -18,10 +18,36 @@
     <ClInclude Include="Renderer.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderBox.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TransferFuction.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Renderer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="RenderBox.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TransferFuction.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\common.glsl">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="shaders\mpr.comp">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="shaders\volume.comp">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -1,0 +1,30 @@
+#version 450
+#extension GL_GOOGLE_include_directive : enable
+#include "common.glsl"
+layout(local_size_x = 16, local_size_y = 16) in;
+bool intersectBox(vec3 ro, vec3 rd, vec3 b, out float nearT, out float farT) {
+    vec3 t0=(-b-ro)/rd, t1=(b-ro)/rd;
+    vec3 mn=min(t0,t1), mx=max(t0,t1);
+    nearT=max(max(mn.x,mn.y),mn.z); farT=min(min(mx.x,mx.y),mx.z);
+    return farT>=max(nearT,0.0);
+}
+void main() {
+    ivec2 pixel=ivec2(gl_GlobalInvocationID.xy), size=params.viewportWindow.xy;
+    if(any(greaterThanEqual(pixel,size))) return;
+    vec2 ndc=(vec2(pixel)+0.5)/vec2(size)*2.0-1.0;
+    vec4 a=params.inverseViewProjection*vec4(ndc,0,1), b=params.inverseViewProjection*vec4(ndc,1,1);
+    vec3 ro=a.xyz/a.w, rd=normalize(b.xyz/b.w-ro);
+    float nearT,farT; vec3 color=vec3(0);
+    if(intersectBox(ro,rd,params.volumeSize.xyz*0.5,nearT,farT)) {
+        vec4 acc=vec4(0); float stepSize=1.0; float t=max(nearT,0.0);
+        for(int i=0;i<4096 && t<=farT;i++,t+=stepSize) {
+            vec3 coord=(ro+rd*t)/params.volumeSize.xyz+0.5;
+            uint index=min(uint(sampleVolume(coord)*65535.0/4095.0),4095u);
+            vec4 s=lut[index];
+            acc.rgb+=(1.0-acc.a)*s.rgb*s.a; acc.a+=(1.0-acc.a)*s.a;
+            if(acc.a>0.98) break;
+        }
+        color=acc.rgb;
+    }
+    outputPixels[pixel.x+pixel.y*size.x]=bgra(color);
+}
