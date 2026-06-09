@@ -1,0 +1,24 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Project build output
+/x64/
+/renderer_vulkan/x64/
+
+# C/C++ intermediate and debug files
+*.obj
+*.pch
+*.ilk
+*.pdb
+*.idb
+*.tlog
+*.recipe
+*.log
+
+# Local tooling
+.vscode/
+
