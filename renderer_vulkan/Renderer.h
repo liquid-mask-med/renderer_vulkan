@@ -6,7 +6,6 @@
 #include <vulkan/vulkan.h>
 #include <glm/matrix.hpp>
 #include <mutex>
-#include <vector>
 
 #define RENDERER_API __declspec(dllexport)
 
@@ -36,15 +35,32 @@ private:
         void* mapped = nullptr;
     };
 
-    struct alignas(16) ComputeUniforms {
-        glm::mat4 inverseViewProjection{ 1.0f };
-        glm::vec4 volumeSize{ 0.0f };
+    struct Image {
+        VkImage image = VK_NULL_HANDLE;
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+        VkImageView view = VK_NULL_HANDLE;
+        VkFormat format = VK_FORMAT_UNDEFINED;
+    };
+
+    struct ViewResources {
+        Image color;
+        Image depth;
+        VkFramebuffer framebuffer = VK_NULL_HANDLE;
+        Buffer readback;
+    };
+
+    struct alignas(16) ShaderUniforms {
+        glm::mat4 model{ 1.0f };
+        glm::mat4 view{ 1.0f };
+        glm::mat4 projection{ 1.0f };
+        glm::vec4 viewRay{ 0.0f };
+        glm::vec4 volumePhysicalSize{ 0.0f };
         glm::vec4 origin{ 0.0f };
         glm::vec4 axisU{ 0.0f };
         glm::vec4 axisV{ 0.0f };
         glm::vec4 uvBounds{ 0.0f };
-        glm::ivec4 dimensions{ 0 };
         glm::ivec4 viewportWindow{ 0 };
+        glm::ivec4 dimensions{ 0 };
     };
 
     VkInstance instance = VK_NULL_HANDLE;
@@ -53,17 +69,23 @@ private:
     VkQueue queue = VK_NULL_HANDLE;
     uint32_t queueFamily = 0;
     VkCommandPool commandPool = VK_NULL_HANDLE;
+    VkRenderPass renderPass = VK_NULL_HANDLE;
     VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
     VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
     VkPipeline mprPipeline = VK_NULL_HANDLE;
     VkPipeline volumePipeline = VK_NULL_HANDLE;
     VkDescriptorSet descriptorSets[4]{};
+    VkSampler volumeSampler = VK_NULL_HANDLE;
+    VkSampler lutSampler = VK_NULL_HANDLE;
 
-    Buffer volumeBuffer;
-    Buffer lutBuffer;
-    Buffer outputBuffers[4];
+    Buffer vertexBuffer;
+    Buffer indexBuffer;
+    Buffer mprVertexBuffer;
     Buffer uniformBuffers[4];
+    Image volumeImage;
+    Image lutImage;
+    ViewResources views[4];
 
     RenderImage image3D{};
     RenderImage sliceImage[3]{};
@@ -74,6 +96,7 @@ private:
     int viewW[4]{};
     int viewH[4]{};
 
+    glm::mat4 modelMatrix{ 1.0f };
     glm::mat4 viewMatrix{ 1.0f };
     glm::mat4 projectMatrix{ 1.0f };
     std::mutex dataMutex;
@@ -81,13 +104,24 @@ private:
 
     void createInstance();
     void createDevice();
+    void createRenderPass();
     void createDescriptors();
+    void createSamplers();
+    void createGeometry();
     void createPipelines();
     void updateProjection();
     void updateDescriptorSet(int viewIndex);
-    void dispatch(int viewIndex, VkPipeline pipeline);
-    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, Buffer& buffer);
+    void drawView(int viewIndex, VkPipeline pipeline);
+    void copyViewToCpu(int viewIndex);
+
+    void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, Buffer& buffer, VkMemoryPropertyFlags properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     void destroyBuffer(Buffer& buffer);
+    void createImage(uint32_t width, uint32_t height, uint32_t depth, VkImageType type, VkFormat format, VkImageUsageFlags usage, VkImageAspectFlags aspect, Image& image);
+    void destroyImage(Image& image);
+    void uploadImage(const void* data, VkDeviceSize size, uint32_t width, uint32_t height, uint32_t depth, Image& image);
+    void destroyViewResources(ViewResources& view);
+    VkCommandBuffer beginCommands();
+    void endCommands(VkCommandBuffer command);
     uint32_t findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags properties);
 };
 

@@ -40,13 +40,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\common.glsl">
+    <None Include="shaders\mpr.vert">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="shaders\mpr.comp">
+    <None Include="shaders\mpr.frag">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="shaders\volume.comp">
+    <None Include="shaders\volume.vert">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="shaders\volume.frag">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
