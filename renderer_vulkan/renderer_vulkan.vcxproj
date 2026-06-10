@@ -53,6 +53,10 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <DicomViewerOutputDir>$(SolutionDir)..\dicom_viewer\dicom_viewer\bin\x64\Debug\net8.0-windows</DicomViewerOutputDir>
+    <RendererServerNativeDir>$(SolutionDir)..\renderer_server\native</RendererServerNativeDir>
+  </PropertyGroup>
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
@@ -127,8 +131,12 @@
 "$(VULKAN_SDK)\Bin\glslc.exe" "$(ProjectDir)shaders\volume.frag" -o "$(ProjectDir)shaders\volume.frag.spv"</Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy "$(TargetPath)" "D:\workspace\wpfpro\dicom_viewer\dicom_viewer\bin\x64\Debug\net8.0-windows" /Y /D
-xcopy "$(ProjectDir)shaders\*.spv" "D:\workspace\wpfpro\dicom_viewer\dicom_viewer\bin\x64\Debug\net8.0-windows\shaders\" /Y /D</Command>
+      <Command>if not exist "$(DicomViewerOutputDir)\shaders" mkdir "$(DicomViewerOutputDir)\shaders"
+if not exist "$(RendererServerNativeDir)\shaders" mkdir "$(RendererServerNativeDir)\shaders"
+xcopy "$(TargetPath)" "$(DicomViewerOutputDir)\" /Y /D
+xcopy "$(ProjectDir)shaders\*.spv" "$(DicomViewerOutputDir)\shaders\" /Y /D
+xcopy "$(TargetPath)" "$(RendererServerNativeDir)\" /Y /D
+xcopy "$(ProjectDir)shaders\*.spv" "$(RendererServerNativeDir)\shaders\" /Y /D</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
