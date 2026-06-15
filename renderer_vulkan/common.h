@@ -35,19 +35,28 @@ struct Vec3 {
 	float z;
 };
 
+struct SliceDisplayMapping {
+	float centerU;
+	float centerV;
+	float halfU;
+	float halfV;
+};
+
 struct SliceDesc {
 	glm::vec3 origin;
 	glm::vec3 axisU;
 	glm::vec3 axisV;
+	SliceDisplayMapping mapping;
 
 	SliceDesc() {
 
 	}
 
-	SliceDesc(glm::vec3 o, glm::vec3 u, glm::vec3 v) {
+	SliceDesc(glm::vec3 o, glm::vec3 u, glm::vec3 v, SliceDisplayMapping m) {
 		origin = o;
 		axisU = u;
 		axisV = v;
+		mapping = m;
 	}
 
 	//void setOrigin(Vec3 o) {

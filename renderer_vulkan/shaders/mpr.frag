@@ -13,32 +13,14 @@ layout(set = 0, binding = 2, std140) uniform Params {
     vec4 origin;
     vec4 axisU;
     vec4 axisV;
-    vec4 uvBounds;
+    vec4 sliceMapping;
     ivec4 viewportWindow;
     ivec4 dimensions;
 } params;
 
 void main() {
-    float uAspect = float(params.viewportWindow.x) / float(params.viewportWindow.y);
-    float minU = params.uvBounds.x;
-    float maxU = params.uvBounds.y;
-    float minV = params.uvBounds.z;
-    float maxV = params.uvBounds.w;
-
-    float centerU = (maxU + minU) * 0.5;
-    float centerV = (maxV + minV) * 0.5;
-    float halfU = max((maxU - minU) * 0.5, 1e-5);
-    float halfV = max((maxV - minV) * 0.5, 1e-5);
-    float rangeAspect = halfU / halfV;
-
-    if (uAspect > rangeAspect) {
-        halfU = halfV * uAspect;
-    } else {
-        halfV = halfU / uAspect;
-    }
-
-    float uOffset = centerU + (uv.x - 0.5) * 2.0 * halfU;
-    float vOffset = centerV + ((1.0 - uv.y) - 0.5) * 2.0 * halfV;
+    float uOffset = params.sliceMapping.x + (uv.x - 0.5) * 2.0 * params.sliceMapping.z;
+    float vOffset = params.sliceMapping.y + ((1.0 - uv.y) - 0.5) * 2.0 * params.sliceMapping.w;
     vec3 worldPos = params.origin.xyz + params.axisU.xyz * uOffset + params.axisV.xyz * vOffset;
     vec3 coord = worldPos / params.volumePhysicalSize.xyz + vec3(0.5);
 

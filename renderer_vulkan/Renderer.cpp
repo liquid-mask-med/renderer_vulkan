@@ -50,19 +50,6 @@ void ensureImageBuffer(RenderImage& image, int width, int height)
     image.height = height;
 }
 
-std::vector<glm::vec3> intersectSliceWithBox(const SliceDesc& slice, RenderBox box)
-{
-    const glm::vec3 normal = glm::normalize(glm::cross(slice.axisU, slice.axisV));
-    std::vector<glm::vec3> points;
-    for (const auto& edge : box.getEdges()) {
-        const float da = glm::dot(edge.p1 - slice.origin, normal);
-        const float db = glm::dot(edge.p2 - slice.origin, normal);
-        if (da * db <= 0.0f && std::abs(da - db) > 1e-6f) {
-            points.push_back(edge.p1 + (da / (da - db)) * (edge.p2 - edge.p1));
-        }
-    }
-    return points;
-}
 }
 
 Renderer::Renderer() = default;
@@ -634,7 +621,7 @@ void Renderer::render(int mask)
             uniforms.origin = glm::vec4(sliceStates[i].origin, 0);
             uniforms.axisU = glm::vec4(sliceStates[i].axisU, 0);
             uniforms.axisV = glm::vec4(sliceStates[i].axisV, 0);
-            uniforms.uvBounds = { sliceUVBounds[i].min.x, sliceUVBounds[i].max.x, sliceUVBounds[i].min.y, sliceUVBounds[i].max.y };
+            uniforms.sliceMapping = { sliceStates[i].mapping.centerU, sliceStates[i].mapping.centerV, sliceStates[i].mapping.halfU, sliceStates[i].mapping.halfV };
         }
         memcpy(uniformBuffers[i].mapped, &uniforms, sizeof(uniforms));
         updateDescriptorSet(i);
@@ -653,14 +640,9 @@ void Renderer::getSliceImage(int index, RenderImage* image)
     if (image && index >= 0 && index < 3 && sliceImage[index].width) *image = { sliceImage[index].width, sliceImage[index].height, sliceImage[index].front, nullptr, sliceImage[index].length };
 }
 
-void Renderer::updateSlice(int index, glm::vec3 origin, glm::vec3 u, glm::vec3 v)
+void Renderer::updateSlice(int index, glm::vec3 origin, glm::vec3 u, glm::vec3 v, SliceDisplayMapping mapping)
 {
-    sliceStates[index] = { origin, u, v };
-    std::vector<glm::vec3> uv;
-    for (const auto& point : intersectSliceWithBox(sliceStates[index], renderBox)) {
-        uv.emplace_back(glm::dot(point - origin, u), glm::dot(point - origin, v), 0);
-    }
-    sliceUVBounds[index] = AABB::generateAABB(uv);
+    sliceStates[index] = { origin, u, v, mapping };
 }
 
 void Renderer::rotateCamera(float x, float y)
@@ -685,6 +667,6 @@ RENDERER_API void EnableSnapshot(Renderer* p) { p->enableSnapshot(); }
 RENDERER_API void DisableSnapshot(Renderer* p) { p->disableSnapshot(); }
 RENDERER_API void ResizeViewport(Renderer* p, int index, int width, int height) { p->resizeViewport(index, width, height); }
 RENDERER_API void SetUpRenderParameters(Renderer* p, uint16_t* data, int width, int height, int depth, int windowWidth, int windowCenter, double spacing, double thickness) { p->updateRenderParameters({ width, height, depth, data, spacing, spacing, thickness, windowCenter, windowWidth }); }
-RENDERER_API void SetUpSliceState(Renderer* p, int index, Vec3 origin, Vec3 u, Vec3 v) { p->updateSlice(index, { origin.x, origin.y, origin.z }, glm::normalize(glm::vec3(u.x, u.y, u.z)), glm::normalize(glm::vec3(v.x, v.y, v.z))); }
+RENDERER_API void SetUpSliceState(Renderer* p, int index, Vec3 origin, Vec3 u, Vec3 v, SliceDisplayMapping mapping) { p->updateSlice(index, { origin.x, origin.y, origin.z }, glm::normalize(glm::vec3(u.x, u.y, u.z)), glm::normalize(glm::vec3(v.x, v.y, v.z)), mapping); }
 RENDERER_API void RotateCamera(Renderer* p, float dx, float dy) { p->rotateCamera(-glm::radians(dx), glm::radians(dy)); }
 RENDERER_API void ScaleCamera(Renderer* p, float scale) { p->scaleCamera(scale); }
