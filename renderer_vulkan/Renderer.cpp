@@ -608,11 +608,14 @@ void Renderer::render(int mask)
         uniforms.view = viewMatrix;
         uniforms.projection = projectMatrix;
         uniforms.volumePhysicalSize = glm::vec4(float(renderParams.width * renderParams.spacingX), float(renderParams.height * renderParams.spacingY), float(renderParams.depth * renderParams.spacingZ), 0);
+        uniforms.volumePixelSize = glm::vec4(float(renderParams.width), float(renderParams.height), float(renderParams.depth), 0);
         uniforms.viewportWindow = { viewW[i], viewH[i], renderParams.windowCenter, renderParams.windowWidth };
-        const int maxSteps = int(std::sqrt(
+        const float stepSize = std::min({ float(renderParams.spacingX), float(renderParams.spacingY), float(renderParams.spacingZ) }) * 0.5f;
+        uniforms.renderControls = glm::vec4(stepSize, 0.0f, 0.0f, 0.0f);
+        const int maxSteps = int(std::ceil(std::sqrt(
             uniforms.volumePhysicalSize.x * uniforms.volumePhysicalSize.x +
             uniforms.volumePhysicalSize.y * uniforms.volumePhysicalSize.y +
-            uniforms.volumePhysicalSize.z * uniforms.volumePhysicalSize.z));
+            uniforms.volumePhysicalSize.z * uniforms.volumePhysicalSize.z) / stepSize)) + 1;
         uniforms.dimensions = { renderParams.width, renderParams.height, renderParams.depth, maxSteps };
         if (i == 3) {
             const glm::vec3 ray = glm::normalize(glm::vec3(glm::inverse(viewMatrix) * glm::vec4(0, 0, -1, 0)));
@@ -666,7 +669,7 @@ RENDERER_API void GetSliceImage(Renderer* p, int index, RenderImage* image) { p-
 RENDERER_API void EnableSnapshot(Renderer* p) { p->enableSnapshot(); }
 RENDERER_API void DisableSnapshot(Renderer* p) { p->disableSnapshot(); }
 RENDERER_API void ResizeViewport(Renderer* p, int index, int width, int height) { p->resizeViewport(index, width, height); }
-RENDERER_API void SetUpRenderParameters(Renderer* p, uint16_t* data, int width, int height, int depth, int windowWidth, int windowCenter, double spacing, double thickness) { p->updateRenderParameters({ width, height, depth, data, spacing, spacing, thickness, windowCenter, windowWidth }); }
+RENDERER_API void SetUpRenderParameters(Renderer* p, uint16_t* data, int width, int height, int depth, int windowWidth, int windowCenter, double spacingX, double spacingY, double spacingZ) { p->updateRenderParameters({ width, height, depth, data, spacingX, spacingY, spacingZ, windowCenter, windowWidth }); }
 RENDERER_API void SetUpSliceState(Renderer* p, int index, Vec3 origin, Vec3 u, Vec3 v, SliceDisplayMapping mapping) { p->updateSlice(index, { origin.x, origin.y, origin.z }, glm::normalize(glm::vec3(u.x, u.y, u.z)), glm::normalize(glm::vec3(v.x, v.y, v.z)), mapping); }
 RENDERER_API void RotateCamera(Renderer* p, float dx, float dy) { p->rotateCamera(-glm::radians(dx), glm::radians(dy)); }
 RENDERER_API void ScaleCamera(Renderer* p, float scale) { p->scaleCamera(scale); }

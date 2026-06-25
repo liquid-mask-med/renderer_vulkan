@@ -15,6 +15,8 @@ layout(set = 0, binding = 2, std140) uniform Params {
     vec4 uvBounds;
     ivec4 viewportWindow;
     ivec4 dimensions;
+    vec4 volumePixelSize;
+    vec4 renderControls;
 } params;
 
 void main() {

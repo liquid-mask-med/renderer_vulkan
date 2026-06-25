@@ -61,6 +61,8 @@ private:
         glm::vec4 sliceMapping{ 0.0f };
         glm::ivec4 viewportWindow{ 0 };
         glm::ivec4 dimensions{ 0 };
+        glm::vec4 volumePixelSize{ 0.0f };
+        glm::vec4 renderControls{ 0.0f };
     };
 
     VkInstance instance = VK_NULL_HANDLE;
@@ -128,7 +130,7 @@ extern "C" {
     RENDERER_API Renderer* CreateRenderer();
     RENDERER_API void DeleteRenderer(Renderer* p);
     RENDERER_API void Init(Renderer* p);
-    RENDERER_API void SetUpRenderParameters(Renderer* p, uint16_t* volumeData, int width, int height, int depth, int windowWidth, int windowCenter, double spacing, double thickness);
+    RENDERER_API void SetUpRenderParameters(Renderer* p, uint16_t* volumeData, int width, int height, int depth, int windowWidth, int windowCenter, double spacingX, double spacingY, double spacingZ);
     RENDERER_API void Render(Renderer* p, int mask);
     RENDERER_API void GetImage(Renderer* p, RenderImage* image);
     RENDERER_API void GetSliceImage(Renderer* p, int index, RenderImage* image);
